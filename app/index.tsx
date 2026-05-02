@@ -1,10 +1,17 @@
+import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  Image, ActivityIndicator, StyleSheet, StatusBar,
-  SafeAreaView, Alert,
+  ActivityIndicator,
+  Alert,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
 
 const C = {
   bg: '#030d1a', card: '#071828', border: '#0a3a5a',
@@ -70,7 +77,7 @@ export default function App() {
     try {
       const formData = new FormData();
       formData.append('file', { uri: image.uri, type: 'image/jpeg', name: 'ct_scan.jpg' } as any);
-      const response = await fetch('https://ai-ct-analyzer-backend.onrender.com/predict', {
+      const response = await fetch('https://ai-ct-analyzer-backend.onrender.com/', {
         method: 'POST', body: formData, headers: { 'Content-Type': 'multipart/form-data' },
       });
       const data = await response.json();
