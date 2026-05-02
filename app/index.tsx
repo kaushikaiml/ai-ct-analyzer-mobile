@@ -71,22 +71,47 @@ export default function App() {
     if (!res.canceled) { setImage(res.assets[0]); setResult(null); }
   };
 
-  const analyze = async () => {
-    if (!image) return;
-    setLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', { uri: image.uri, type: 'image/jpeg', name: 'ct_scan.jpg' } as any);
-      const response = await fetch('https://ai-ct-analyzer-backend.onrender.com/', {
-        method: 'POST', body: formData, headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      const data = await response.json();
-      setResult(data);
-    } catch (e) {
+ const analyze = async () => {
+  if (!image) return;
+  setLoading(true);
+
+  try {
+    // Pehle server jagao
+    await fetch('https://ai-ct-analyzer-backend.onrender.com');
+
+    const formData = new FormData();
+    formData.append('file', {
+      uri: image.uri,
+      type: 'image/jpeg',
+      name: 'ct_scan.jpg',
+    } as any);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 120000); // 2 min timeout
+
+    const response = await fetch('https://ai-ct-analyzer-backend.onrender.com/predict', {
+      method: 'POST',
+      body: formData,
+      headers: { 'Accept': 'application/json' },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) throw new Error('Server error');
+    const data = await response.json();
+    setResult(data);
+
+  } catch (e: any) {
+    if (e.name === 'AbortError') {
+      Alert.alert('Timeout', 'Server slow hai, dobara try karo!');
+    } else {
       Alert.alert('Error', 'Server se connect nahi ho pa raha.');
     }
+  } finally {
     setLoading(false);
-  };
+  }
+};
 
   const getSeverityColor = (s: string) => {
     if (s === 'Normal') return C.green;
